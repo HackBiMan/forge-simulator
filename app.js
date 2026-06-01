@@ -219,7 +219,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
         <!-- 예측 시뮬레이터 (첫 번째 행) -->
         <div style="display: flex; gap: 20px; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.15);">
             <!-- 좌측 컬럼 (예측 입력) -->
-            <div style="flex: 1; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+            <div style="flex: 1 1 0%; min-width: 0; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
                 <h3 style="margin: 0; font-size: 15px; color: var(--neon-cyan); margin-bottom: 12px;">현재 보유재화 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -239,9 +239,15 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                             <input type="number" class="lvl-input" id="${prefix}_curLvl" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_cur', this.value)" style="width: 50px; padding: 4px; font-size: 13px;">
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 13px; color: var(--text-muted); min-width: 60px;">${currencyLabel}:</span>
-                        <input type="number" id="${prefix}_sim_currency" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="flex: 1; padding: 6px; font-size: 13px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">${currencyLabel}:</span>
+                            <input type="number" id="${prefix}_sim_currency" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="width: 80px; padding: 6px; font-size: 13px; text-align: center;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">${cat === 'forge' ? '보유 골드' : '현재 소환 수'}:</span>
+                            <input type="number" id="${prefix}_sim_progress" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="width: 80px; padding: 6px; font-size: 13px; text-align: center;">
+                        </div>
                     </div>
                     ${cat === 'forge' ? `
                     <div id="forge_extraSimStats" style="margin-top: 5px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: var(--gold); line-height: 1.5;">
@@ -251,7 +257,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
             </div>
             
             <!-- 우측 컬럼 (예측 출력) -->
-            <div style="flex: 1.2;">
+            <div style="flex: 1.2 1 0%; min-width: 0;">
                 <h3 style="margin: 0; font-size: 15px; color: var(--neon-cyan); margin-bottom: 12px;">예측 시뮬레이터 결과</h3>
                 <div id="${prefix}_sim_resultBox" class="result-box" style="min-height: 120px; padding: 15px;">
                     <div style="text-align: center; line-height: 90px; color: var(--text-muted);">결과가 여기에 표시됩니다.</div>
@@ -262,7 +268,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
         <!-- 목표 시뮬레이터 (두 번째 행) -->
         <div style="display: flex; gap: 20px;">
             <!-- 좌측 컬럼 (목표 입력) -->
-            <div style="flex: 1; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+            <div style="flex: 1 1 0%; min-width: 0; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
                 <h3 style="margin: 0; font-size: 15px; color: var(--gold); margin-bottom: 12px;">목표 레벨 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -295,7 +301,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
             </div>
             
             <!-- 우측 컬럼 (목표 출력) -->
-            <div style="flex: 1.2;">
+            <div style="flex: 1.2 1 0%; min-width: 0;">
                 <h3 id="${prefix}_tar_resultTitle" style="margin: 0; font-size: 15px; color: var(--gold); margin-bottom: 12px;">목표 시뮬레이터 결과</h3>
                 <div id="${prefix}_resultBox" class="result-box" style="padding: 15px;"></div>
             </div>
@@ -548,13 +554,13 @@ function calcSkill(prefix = 'skill') {
             </strong>
         </div>
         <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+            <div class="result-stat-card" style="--stat-accent: #D05CF7;">
+                <div class="result-stat-label">필요 스킬 티켓</div>
+                <div class="result-stat-value">${formatNumber(res.ticketsNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.ticketsNeeded.toLocaleString()})</span></div>
+            </div>
             <div class="result-stat-card" style="--stat-accent: #00e5ff;">
                 <div class="result-stat-label">필요 소환 횟수</div>
                 <div class="result-stat-value">${res.totalSummons.toLocaleString()}</div>
-            </div>
-            <div class="result-stat-card" style="--stat-accent: #D05CF7;">
-                <div class="result-stat-label">필요 스킬 티켓</div>
-                <div class="result-stat-value">${res.ticketsNeeded.toLocaleString()} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${formatNumber(res.ticketsNeeded)})</span></div>
             </div>
         </div>
     </div>
@@ -600,13 +606,13 @@ function calcPet(prefix = 'pet') {
             </strong>
         </div>
         <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+            <div class="result-stat-card" style="--stat-accent: #74F28B;">
+                <div class="result-stat-label">필요 알</div>
+                <div class="result-stat-value">${formatNumber(res.eggsNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.eggsNeeded.toLocaleString()})</span></div>
+            </div>
             <div class="result-stat-card" style="--stat-accent: #00e5ff;">
                 <div class="result-stat-label">필요 소환 횟수</div>
                 <div class="result-stat-value">${res.totalSummons.toLocaleString()}</div>
-            </div>
-            <div class="result-stat-card" style="--stat-accent: #74F28B;">
-                <div class="result-stat-label">필요 알</div>
-                <div class="result-stat-value">${res.eggsNeeded.toLocaleString()} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${formatNumber(res.eggsNeeded)})</span></div>
             </div>
         </div>
     </div>
@@ -655,13 +661,13 @@ function calcMount(prefix = 'mount') {
             </strong>
         </div>
         <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+            <div class="result-stat-card" style="--stat-accent: #FFF35C;">
+                <div class="result-stat-label">필요 태엽</div>
+                <div class="result-stat-value">${formatNumber(res.gearNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.gearNeeded.toLocaleString()})</span></div>
+            </div>
             <div class="result-stat-card" style="--stat-accent: #00e5ff;">
                 <div class="result-stat-label">필요 소환 횟수</div>
                 <div class="result-stat-value">${res.totalSummons.toLocaleString()}</div>
-            </div>
-            <div class="result-stat-card" style="--stat-accent: #FFF35C;">
-                <div class="result-stat-label">필요 태엽</div>
-                <div class="result-stat-value">${res.gearNeeded.toLocaleString()} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${formatNumber(res.gearNeeded)})</span></div>
             </div>
         </div>
     </div>
@@ -771,6 +777,7 @@ function runSimulator(cat, prefix = cat) {
     let startLvl = parseInt(document.getElementById(`${prefix}_curLvl`).value) || 1;
     let startAsc = parseInt(document.getElementById(`${prefix}_curAsc`).value) || 0;
     let curr = parseFloat(document.getElementById(`${prefix}_sim_currency`).value) || 0;
+    let initialProgInput = parseFloat(document.getElementById(`${prefix}_sim_progress`).value) || 0;
 
     let data = Data[cat];
     let resultBox = document.getElementById(`${prefix}_sim_resultBox`);
@@ -807,7 +814,7 @@ function runSimulator(cat, prefix = cat) {
     let currentLvl = startLvl;
     let currentAsc = startAsc;
     let remainingCurrency = curr;
-    let currentProgress = 0;
+    let currentProgress = (cat === 'forge' && hammerValue > 0) ? (initialProgInput / hammerValue) : initialProgInput;
     let totalDraws = 0;
     let expectedCounts = new Array(cat === 'forge' ? 10 : 6).fill(0);
     let requiredForNext = 0;
@@ -951,6 +958,21 @@ function runSimulator(cat, prefix = cat) {
         progressStr = isMax ? `MAX` : `${formatNumber(currentProgress)} / ${formatNumber(reqSummons)}`;
     }
 
+    let maxGradeBadgeHtml = '';
+    if (finalReqRow && finalReqRow.probs) {
+        let maxGradeIdx = -1;
+        for (let i = finalReqRow.probs.length - 1; i >= 0; i--) {
+            if (finalReqRow.probs[i] > 0) {
+                maxGradeIdx = i;
+                break;
+            }
+        }
+        if (maxGradeIdx !== -1) {
+            let p = finalReqRow.probs[maxGradeIdx];
+            maxGradeBadgeHtml = `<div style="margin-top: 4px;"><span style="font-size:12px; font-weight:bold; color:${grades[maxGradeIdx].c}; white-space:nowrap; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">${grades[maxGradeIdx].n} ${p.toFixed(2)}%</span></div>`;
+        }
+    }
+
     let html = `
     <div style="display: flex; gap: 20px; font-size: 15px;">
         <!-- 왼쪽 컬럼 -->
@@ -965,6 +987,8 @@ function runSimulator(cat, prefix = cat) {
             <strong style="font-size: 16px; color: ${highlightColor};">
                 ${progressStr}
             </strong>
+            
+            ${maxGradeBadgeHtml}
         </div>
         
         <!-- 오른쪽 컬럼 (뱃지들) -->

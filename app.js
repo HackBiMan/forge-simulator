@@ -217,9 +217,9 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
         <h2 style="color: var(--neon-cyan); border-bottom: 1px solid rgba(0, 229, 255, 0.3); padding-bottom: 10px; margin-top: 0; margin-bottom: 20px;">${titlePrefix} 예측 시뮬레이터</h2>
         
         <!-- 예측 시뮬레이터 (첫 번째 행) -->
-        <div style="display: flex; gap: 20px; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px dashed rgba(255,255,255,0.15);">
+        <div class="sim-layout-row">
             <!-- 좌측 컬럼 (예측 입력) -->
-            <div style="flex: 1 1 0%; min-width: 0; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+            <div class="sim-left-col">
                 <h3 style="margin: 0; font-size: 15px; color: var(--neon-cyan); margin-bottom: 12px;">현재 보유재화 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -239,7 +239,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                             <input type="number" class="lvl-input" id="${prefix}_curLvl" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_cur', this.value)" style="width: 50px; padding: 4px; font-size: 13px;">
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">${currencyLabel}:</span>
                             <input type="number" id="${prefix}_sim_currency" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="width: 80px; padding: 6px; font-size: 13px; text-align: center;">
@@ -257,7 +257,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
             </div>
             
             <!-- 우측 컬럼 (예측 출력) -->
-            <div style="flex: 1.2 1 0%; min-width: 0;">
+            <div class="sim-right-col">
                 <h3 style="margin: 0; font-size: 15px; color: var(--neon-cyan); margin-bottom: 12px;">예측 시뮬레이터 결과</h3>
                 <div id="${prefix}_sim_resultBox" class="result-box" style="min-height: 120px; padding: 15px;">
                     <div style="text-align: center; line-height: 90px; color: var(--text-muted);">결과가 여기에 표시됩니다.</div>
@@ -266,9 +266,9 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
         </div>
 
         <!-- 목표 시뮬레이터 (두 번째 행) -->
-        <div style="display: flex; gap: 20px;">
+        <div class="sim-layout-row no-border">
             <!-- 좌측 컬럼 (목표 입력) -->
-            <div style="flex: 1 1 0%; min-width: 0; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+            <div class="sim-left-col">
                 <h3 style="margin: 0; font-size: 15px; color: var(--gold); margin-bottom: 12px;">목표 레벨 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -301,7 +301,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
             </div>
             
             <!-- 우측 컬럼 (목표 출력) -->
-            <div style="flex: 1.2 1 0%; min-width: 0;">
+            <div class="sim-right-col">
                 <h3 id="${prefix}_tar_resultTitle" style="margin: 0; font-size: 15px; color: var(--gold); margin-bottom: 12px;">목표 시뮬레이터 결과</h3>
                 <div id="${prefix}_resultBox" class="result-box" style="padding: 15px;"></div>
             </div>
@@ -349,9 +349,12 @@ function updateProbabilitiesDisplay(prefix, level) {
     if (!container) return;
 
     let html = '<div style="display: flex; gap: 8px; flex-wrap: nowrap; justify-content: flex-start; align-items: center; overflow: hidden; width: 100%;">';
-    row.probs.forEach((p, idx) => {
+    let reversedProbs = [...row.probs].reverse();
+    let reversedGrades = [...grades].reverse();
+    
+    reversedProbs.forEach((p, idx) => {
         if (p > 0) {
-            html += `<span style="font-size:11.5px; font-weight:bold; color:${grades[idx].c}; white-space:nowrap;">${grades[idx].n}: ${p.toFixed(2)}%</span>`;
+            html += `<span style="font-size:11.5px; font-weight:bold; color:${reversedGrades[idx].c}; white-space:nowrap;">${reversedGrades[idx].n}: ${p.toFixed(2)}%</span>`;
         }
     });
     html += '</div>';
@@ -546,14 +549,14 @@ function calcSkill(prefix = 'skill') {
     resultBox.className = "result-box";
     resultBox.style.padding = "15px";
     resultBox.innerHTML = `
-    <div style="display: flex; gap: 20px; font-size: 15px;">
-        <div style="flex: 0.55; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid rgba(255,255,255,0.15); padding-right: 15px; justify-content: center; align-items: flex-start;">
+    <div class="result-layout-row">
+        <div class="result-left-col">
             <strong style="color: var(--text-main); font-size: 16px; line-height: 1.4;">
                 승천 : ${curAsc} &gt; ${tarAsc}<br>
                 레벨 : ${curLvl} &gt; ${tarLvl}
             </strong>
         </div>
-        <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+        <div class="result-right-col">
             <div class="result-stat-card" style="--stat-accent: #D05CF7;">
                 <div class="result-stat-label">필요 스킬 티켓</div>
                 <div class="result-stat-value">${formatNumber(res.ticketsNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.ticketsNeeded.toLocaleString()})</span></div>
@@ -598,14 +601,14 @@ function calcPet(prefix = 'pet') {
     resultBox.className = "result-box";
     resultBox.style.padding = "15px";
     resultBox.innerHTML = `
-    <div style="display: flex; gap: 20px; font-size: 15px;">
-        <div style="flex: 0.55; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid rgba(255,255,255,0.15); padding-right: 15px; justify-content: center; align-items: flex-start;">
+    <div class="result-layout-row">
+        <div class="result-left-col">
             <strong style="color: var(--text-main); font-size: 16px; line-height: 1.4;">
                 승천 : ${curAsc} &gt; ${tarAsc}<br>
                 레벨 : ${curLvl} &gt; ${tarLvl}
             </strong>
         </div>
-        <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+        <div class="result-right-col">
             <div class="result-stat-card" style="--stat-accent: #74F28B;">
                 <div class="result-stat-label">필요 알</div>
                 <div class="result-stat-value">${formatNumber(res.eggsNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.eggsNeeded.toLocaleString()})</span></div>
@@ -653,14 +656,14 @@ function calcMount(prefix = 'mount') {
     resultBox.className = "result-box";
     resultBox.style.padding = "15px";
     resultBox.innerHTML = `
-    <div style="display: flex; gap: 20px; font-size: 15px;">
-        <div style="flex: 0.55; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid rgba(255,255,255,0.15); padding-right: 15px; justify-content: center; align-items: flex-start;">
+    <div class="result-layout-row">
+        <div class="result-left-col">
             <strong style="color: var(--text-main); font-size: 16px; line-height: 1.4;">
                 승천 : ${curAsc} &gt; ${tarAsc}<br>
                 레벨 : ${curLvl} &gt; ${tarLvl}
             </strong>
         </div>
-        <div style="flex: 1.5; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+        <div class="result-right-col">
             <div class="result-stat-card" style="--stat-accent: #FFF35C;">
                 <div class="result-stat-label">필요 태엽</div>
                 <div class="result-stat-value">${formatNumber(res.gearNeeded)} <span style="font-size: 16px; color: var(--text-muted); font-weight: normal;">(${res.gearNeeded.toLocaleString()})</span></div>
@@ -704,7 +707,22 @@ function switchTab(pageId, btn) {
 // -----------------------------------------
 // Simulator & Data Dictionary Logic
 // -----------------------------------------
+let dataSortDesc = false;
+let currentDataTab = 'forge';
+
+function toggleDataSort() {
+    dataSortDesc = !dataSortDesc;
+    let btn = document.getElementById('data_sortBtn');
+    if (dataSortDesc) {
+        btn.innerText = '정렬: 내림차순 (고렙 ➔ 저렙)';
+    } else {
+        btn.innerText = '정렬: 오름차순 (저렙 ➔ 고렙)';
+    }
+    showDataTab(currentDataTab);
+}
+
 function showDataTab(category) {
+    currentDataTab = category;
     // Update active button
     document.querySelectorAll('#dataPage .global-tier-btns .g-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -744,12 +762,16 @@ function showDataTab(category) {
         ];
     }
 
-    grades.forEach(g => {
+    let displayGrades = dataSortDesc ? [...grades].reverse() : grades;
+
+    displayGrades.forEach(g => {
         html += `<th style="color: ${g.c}">${g.n}</th>`;
     });
     html += `</tr></thead><tbody>`;
 
-    data.forEach(row => {
+    let displayData = dataSortDesc ? [...data].reverse() : data;
+
+    displayData.forEach(row => {
         html += `<tr>`;
         html += `<td>${row.level}</td>`;
         if (category === 'forge') {
@@ -759,9 +781,12 @@ function showDataTab(category) {
         } else {
             html += `<td>${row.summonNum}</td>`;
         }
-        row.probs.forEach((p, idx) => {
+        
+        let displayProbs = dataSortDesc ? [...row.probs].reverse() : row.probs;
+        displayProbs.forEach((p, idx) => {
+            let grade = displayGrades[idx];
             if (p > 0) {
-                html += `<td><span class="prob-badge" style="--badge-color: ${grades[idx].c}">${p.toFixed(2)}%</span></td>`;
+                html += `<td><span class="prob-badge" style="--badge-color: ${grade.c}">${p.toFixed(2)}%</span></td>`;
             } else {
                 html += `<td><span style="color: rgba(255,255,255,0.1)">-</span></td>`;
             }
@@ -974,9 +999,9 @@ function runSimulator(cat, prefix = cat) {
     }
 
     let html = `
-    <div style="display: flex; gap: 20px; font-size: 15px;">
+    <div class="result-layout-row">
         <!-- 왼쪽 컬럼 -->
-        <div style="flex: 0.55; display: flex; flex-direction: column; gap: 12px; border-right: 2px solid rgba(255,255,255,0.15); padding-right: 15px; justify-content: center; align-items: flex-start;">
+        <div class="result-left-col">
             <!-- 1. 최종 레벨 예상 -->
             <strong style="color: ${highlightColor}; font-size: 16px; line-height: 1.4;">
                 승천 : ${startAsc} &gt; ${isMax ? 3 : currentAsc}<br>
@@ -992,7 +1017,7 @@ function runSimulator(cat, prefix = cat) {
         </div>
         
         <!-- 오른쪽 컬럼 (뱃지들) -->
-        <div style="flex: 1.5; display: grid; grid-template-columns: repeat(${cat === 'forge' ? 5 : 3}, 1fr); gap: 6px; align-content: center;">
+        <div class="badge-grid badge-grid-${cat === 'forge' ? 5 : 3}">
     `;
 
     expectedCounts.forEach((expected, i) => {

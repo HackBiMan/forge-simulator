@@ -14,7 +14,7 @@
         <div class="nav-brand-container">
             <div class="nav-brand">Forge Master Simulator</div>
             <div class="nav-author"
-                style="font-size: 15px; color: var(--gold); font-weight: bold; letter-spacing: 0.5px; text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);">
+                style="font-size: 14px; color: var(--accent); font-weight: bold; letter-spacing: 0.5px; text-shadow: 0 0 5px rgba(208, 102, 255, 0.4); white-space: nowrap;">
                 Made by &lt;S9 KFC[CLUB] HBM&gt;</div>
         </div>
         <div class="nav-links">
@@ -50,10 +50,9 @@
         <!-- 스킬 계산기 -->
         <div id="skillPage" class="page">
             <div class="card">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 229, 255, 0.3); padding-bottom: 10px;">
+                <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">스킬 기술트리 입력</h2>
-                    <div style="display: flex; gap: 6px;">
+                    <div class="global-tier-btns-wrap">
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
                             onclick="setGlobalTier('skill', 0)">초기화</button>
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
@@ -77,10 +76,9 @@
         <!-- 펫 계산기 -->
         <div id="petPage" class="page">
             <div class="card">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 229, 255, 0.3); padding-bottom: 10px;">
+                <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">펫 기술트리 입력</h2>
-                    <div style="display: flex; gap: 6px;">
+                    <div class="global-tier-btns-wrap">
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
                             onclick="setGlobalTier('pet', 0)">초기화</button>
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
@@ -104,10 +102,9 @@
         <!-- 탈것 계산기 -->
         <div id="mountPage" class="page">
             <div class="card">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 229, 255, 0.3); padding-bottom: 10px;">
+                <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">탈것 기술트리 입력</h2>
-                    <div style="display: flex; gap: 6px;">
+                    <div class="global-tier-btns-wrap">
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
                             onclick="setGlobalTier('mount', 0)">초기화</button>
                         <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
@@ -135,11 +132,14 @@
         <div id="dataPage" class="page">
             <div class="card">
                 <h2>통합 확률 도감 (기술트리 미반영)</h2>
-                <div class="global-tier-btns" style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <button class="g-btn active" onclick="showDataTab('forge')">대장간</button>
-                    <button class="g-btn" onclick="showDataTab('skill')">스킬</button>
-                    <button class="g-btn" onclick="showDataTab('pet')">펫</button>
-                    <button class="g-btn" onclick="showDataTab('mount')">탈것</button>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                    <div class="global-tier-btns" style="margin-bottom: 0; display: flex; flex-wrap: wrap; gap: 10px; width: fit-content;">
+                        <button class="g-btn active" onclick="showDataTab('forge')">대장간</button>
+                        <button class="g-btn" onclick="showDataTab('skill')">스킬</button>
+                        <button class="g-btn" onclick="showDataTab('pet')">펫</button>
+                        <button class="g-btn" onclick="showDataTab('mount')">탈것</button>
+                    </div>
+                    <button id="data_sortBtn" class="g-btn" style="background: rgba(208, 102, 255, 0.2); border-color: var(--accent); color: var(--text-main);" onclick="toggleDataSort()">정렬: 오름차순 (저렙 ➔ 고렙)</button>
                 </div>
                 <div id="data_table_container"
                     style="overflow-x: auto; max-height: 600px; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -151,7 +151,7 @@
         <div id="guidePage" class="page">
             <div class="card">
                 <h2>승천 가이드</h2>
-                <div class="global-tier-btns" style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                <div class="global-tier-btns" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
                     <button class="g-btn active" id="guideTab_forge" onclick="switchGuideTab('forge')">대장간</button>
                     <button class="g-btn" id="guideTab_skill" onclick="switchGuideTab('skill')">스킬</button>
                     <button class="g-btn" id="guideTab_pet" onclick="switchGuideTab('pet')">펫</button>
@@ -159,9 +159,9 @@
                 </div>
                 
                 <div id="guide_forge" style="display: block; height: 100%;">
-                    <div style="display: flex; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); gap: 15px; width: fit-content;">
-                        <span style="font-size: 16px; font-weight: bold; color: var(--gold);">장비레벨 기술트리:</span>
-                        <div id="forgeGuideEquipBtns" style="display: flex; gap: 8px;">
+                    <div class="guide-control-bar">
+                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">장비레벨 기술트리:</span>
+                        <div id="forgeGuideEquipBtns" class="global-tier-btns-wrap">
                             <button class="g-btn active" onclick="setForgeGuideEquip(0)">T0</button>
                             <button class="g-btn" onclick="setForgeGuideEquip(5)">T1 MAX</button>
                             <button class="g-btn" onclick="setForgeGuideEquip(10)">T2 MAX</button>
@@ -169,15 +169,15 @@
                             <button class="g-btn" onclick="setForgeGuideEquip(20)">T4 MAX</button>
                             <button class="g-btn" onclick="setForgeGuideEquip(25)">T5 MAX</button>
                         </div>
-                        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
-                        <span style="font-size: 16px; font-weight: bold; color: var(--gold);">표시 단위:</span>
-                        <div id="forgeGuideDisplayBtns" style="display: flex; gap: 8px;">
+                        <div class="guide-divider"></div>
+                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">표시 단위:</span>
+                        <div id="forgeGuideDisplayBtns" class="global-tier-btns-wrap">
                             <button class="g-btn active" onclick="setForgeGuideDisplay('gold')">필요 골드</button>
                             <button class="g-btn" onclick="setForgeGuideDisplay('hammer')">필요 망치</button>
                         </div>
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
-                        <table style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px; table-layout: fixed;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px;">
                             <thead id="guide_forge_thead"></thead>
                             <tbody id="guide_forge_tbody"></tbody>
                         </table>
@@ -186,7 +186,7 @@
                 
                 <div id="guide_skill" style="display: none; height: 100%;">
                     <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
-                        <table style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px; table-layout: fixed;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px;">
                             <thead id="guide_skill_thead"></thead>
                             <tbody id="guide_skill_tbody"></tbody>
                         </table>
@@ -195,7 +195,7 @@
 
                 <div id="guide_pet" style="display: none; height: 100%;">
                     <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
-                        <table style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px; table-layout: fixed;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px;">
                             <thead id="guide_pet_thead"></thead>
                             <tbody id="guide_pet_tbody"></tbody>
                         </table>
@@ -204,7 +204,7 @@
 
                 <div id="guide_mount" style="display: none; height: 100%;">
                     <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
-                        <table style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px; table-layout: fixed;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px;">
                             <thead id="guide_mount_thead"></thead>
                             <tbody id="guide_mount_tbody"></tbody>
                         </table>

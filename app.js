@@ -69,12 +69,13 @@ function handleDotClick(prefix, tier, level) {
         newLevel = 0;
     }
 
-    if (prefix === "forgeEquipAll" || prefix === "forgeGlobal" || prefix === "skillGlobal" || prefix === "petGlobal" || prefix === "mountGlobal") {
+    const fillPreviousTiers = ["forgeEquipAll", "forgeGlobal", "skill_cost", "pet_bonus", "mount_cost", "mount_bonus"].includes(prefix);
+
+    if (fillPreviousTiers) {
         for (let i = 1; i <= 5; i++) {
             let applyLevel = 0;
             if (newLevel === 0) {
-                if (i < tier) applyLevel = 5;
-                else applyLevel = 0;
+                applyLevel = 0;
             } else {
                 if (i < tier) applyLevel = 5;
                 else if (i === tier) applyLevel = newLevel;
@@ -85,14 +86,8 @@ function handleDotClick(prefix, tier, level) {
 
             if (prefix === "forgeEquipAll") {
                 Data.forgeEquipParts.forEach(p => { updateTierLevel(`forge_${p}`, i, applyLevel); });
-            } else {
-                let targetPrefixes = [];
-                if (prefix === 'forgeGlobal') targetPrefixes = Data.forgeCategories.map(c => `forge_${c.key}`);
-                else if (prefix === 'skillGlobal') targetPrefixes = ['skill_cost'];
-                else if (prefix === 'petGlobal') targetPrefixes = ['pet_bonus'];
-                else if (prefix === 'mountGlobal') targetPrefixes = ['mount_cost', 'mount_bonus'];
-
-                targetPrefixes.forEach(tp => { updateTierLevel(tp, i, applyLevel); });
+            } else if (prefix === "forgeGlobal") {
+                Data.forgeCategories.forEach(c => { updateTierLevel(`forge_${c.key}`, i, applyLevel); });
             }
         }
     } else {
@@ -196,18 +191,34 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
         ];
     }
 
+    let startIdx = 0;
+    let threshold = 0;
+
+    if (cat === 'forge') {
+        startIdx = 5; // 항성
+        threshold = 1.0;
+    } else if (cat === 'skill') {
+        startIdx = 2; // 서사
+        threshold = 2.0;
+    } else { // pet, mount
+        startIdx = 2; // 서사
+        threshold = 4.32;
+    }
+
     let unlocks = new Array(grades.length).fill(0);
     if (Data[cat]) {
         Data[cat].forEach(row => {
             row.probs.forEach((p, idx) => {
-                if (p > 0 && unlocks[idx] === 0) unlocks[idx] = row.level;
+                if (idx >= startIdx && p >= threshold && unlocks[idx] === 0) {
+                    unlocks[idx] = row.level;
+                }
             });
         });
     }
 
     let quickBtns = '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 5px;">';
     unlocks.forEach((lvl, idx) => {
-        if (lvl > 0 && lvl !== 1) { // Skip default level 1
+        if (idx >= startIdx && lvl > 0) {
             quickBtns += `<button class="g-btn" style="padding: 6px 12px; font-size: 13px; font-weight: bold; min-width: 60px; height: auto; background: rgba(0,0,0,0.5); border: 1px solid ${grades[idx].c}; color: ${grades[idx].c};" onclick="document.getElementById('${prefix}_tarLvl').value=${lvl}; syncLvl('${prefix}_tar', ${lvl}); triggerCalculate();">${grades[idx].n}</button>`;
         }
     });
@@ -223,7 +234,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                 <h3 style="margin: 0; font-size: 15px; color: var(--neon-cyan); margin-bottom: 12px;">현재 보유재화 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 13px; color: var(--text-muted); min-width: 60px;">현재 승천:</span>
+                        <span style="font-size: 13px; color: var(--text-main); min-width: 60px;">현재 승천:</span>
                         <div class="asc-chips" id="${prefix}_curAscChips" style="margin-bottom: 0; flex: 1;">
                             <span class="asc-chip active" onclick="setAsc('${prefix}_cur', 0)" style="padding: 4px 0; font-size: 13px;">0</span>
                             <span class="asc-chip" onclick="setAsc('${prefix}_cur', 1)" style="padding: 4px 0; font-size: 13px;">1</span>
@@ -233,7 +244,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                         <input type="hidden" id="${prefix}_curAsc" value="0">
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 13px; color: var(--text-muted); min-width: 60px;">현재 레벨:</span>
+                        <span style="font-size: 13px; color: var(--text-main); min-width: 60px;">현재 레벨:</span>
                         <div class="lvl-control" style="margin: 0; flex: 1;">
                             <input type="range" class="lvl-slider" id="${prefix}_curLvlSlider" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_cur', this.value)" style="height: 4px;">
                             <input type="number" class="lvl-input" id="${prefix}_curLvl" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_cur', this.value)" style="width: 50px; padding: 4px; font-size: 13px;">
@@ -241,17 +252,17 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                     </div>
                     <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">${currencyLabel}:</span>
+                            <span style="font-size: 13px; color: var(--text-main); white-space: nowrap;">${currencyLabel}:</span>
                             <input type="number" id="${prefix}_sim_currency" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="width: 80px; padding: 6px; font-size: 13px; text-align: center;">
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">${cat === 'forge' ? '보유 골드' : '현재 소환 수'}:</span>
+                            <span style="font-size: 13px; color: var(--text-main); white-space: nowrap;">${cat === 'forge' ? '보유 골드' : '현재 소환 수'}:</span>
                             <input type="number" id="${prefix}_sim_progress" class="g-input sim-input" data-cat="${cat}" value="0" min="0" style="width: 80px; padding: 6px; font-size: 13px; text-align: center;">
                         </div>
                     </div>
                     ${cat === 'forge' ? `
-                    <div id="forge_extraSimStats" style="margin-top: 5px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: var(--gold); line-height: 1.5;">
-                        <div id="forge_hammerPerGoldStat">현재 기술트리 기준 골드 1m당 필요 망치 : -개</div>
+                    <div id="forge_extraSimStats" style="margin-top: 5px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 16px; font-weight: bold; text-align: center; color: var(--gold); line-height: 1.5;">
+                        <div id="forge_hammerPerGoldStat">골드 1m = 망치 -개</div>
                     </div>` : ''}
                 </div>
             </div>
@@ -272,7 +283,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                 <h3 style="margin: 0; font-size: 15px; color: var(--gold); margin-bottom: 12px;">목표 레벨 시뮬레이터</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 13px; color: var(--text-muted); min-width: 60px;">목표 승천:</span>
+                        <span style="font-size: 13px; color: var(--text-main); min-width: 60px;">목표 승천:</span>
                         <div class="asc-chips" id="${prefix}_tarAscChips" style="margin-bottom: 0; flex: 1;">
                             <span class="asc-chip active" onclick="setAsc('${prefix}_tar', 0)" style="padding: 4px 0; font-size: 13px;">0</span>
                             <span class="asc-chip" onclick="setAsc('${prefix}_tar', 1)" style="padding: 4px 0; font-size: 13px;">1</span>
@@ -282,7 +293,7 @@ function buildCombinedSimulatorUI(containerId, titlePrefix, prefix, maxLevel, cu
                         <input type="hidden" id="${prefix}_tarAsc" value="0">
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 13px; color: var(--text-muted); min-width: 60px;">목표 레벨:</span>
+                        <span style="font-size: 13px; color: var(--text-main); min-width: 60px;">목표 레벨:</span>
                         <div class="lvl-control" style="margin: 0; flex: 1;">
                             <input type="range" class="lvl-slider" id="${prefix}_tarLvlSlider" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_tar', this.value)" style="height: 4px;">
                             <input type="number" class="lvl-input" id="${prefix}_tarLvl" min="1" max="${maxLevel}" value="1" oninput="syncLvl('${prefix}_tar', this.value)" style="width: 50px; padding: 4px; font-size: 13px;">
@@ -474,7 +485,7 @@ function calcForge(prefix = 'forge') {
 
     let hammersFor1M = 1000000 / hammerValue;
     let hammerPerGoldEl = document.getElementById("forge_hammerPerGoldStat");
-    if (hammerPerGoldEl) hammerPerGoldEl.innerText = `현재 기술트리 기준 골드 1m당 필요 망치 : 대략 ${hammersFor1M.toLocaleString(undefined, {maximumFractionDigits: 0})}개`;
+    if (hammerPerGoldEl) hammerPerGoldEl.innerText = `골드 1m = 망치 ${hammersFor1M.toLocaleString(undefined, {maximumFractionDigits: 0})}개`;
 
     let resultBox = document.getElementById(`${prefix}_resultBox`);
     let res = Calculators.calculateForge(currentAsc, targetAsc, currentLevel, targetLevel, timeAccel, costReduction, sellPrice, refineChance, ownedCoins, equipAvg);
@@ -707,7 +718,7 @@ function switchTab(pageId, btn) {
 // -----------------------------------------
 // Simulator & Data Dictionary Logic
 // -----------------------------------------
-let dataSortDesc = false;
+let dataSortDesc = true;
 let currentDataTab = 'forge';
 
 function toggleDataSort() {
@@ -769,10 +780,40 @@ function showDataTab(category) {
     });
     html += `</tr></thead><tbody>`;
 
+    // Calculate unlocks for highlighting
+    let startIdx = 0;
+    let threshold = 0;
+    if (category === 'forge') { startIdx = 5; threshold = 1.0; }
+    else if (category === 'skill') { startIdx = 2; threshold = 2.0; }
+    else { startIdx = 2; threshold = 4.32; }
+
+    let unlocks = new Array(grades.length).fill(0);
+    data.forEach(row => {
+        row.probs.forEach((p, idx) => {
+            if (idx >= startIdx && p >= threshold && unlocks[idx] === 0) {
+                unlocks[idx] = row.level;
+            }
+        });
+    });
+
     let displayData = dataSortDesc ? [...data].reverse() : data;
 
     displayData.forEach(row => {
-        html += `<tr>`;
+        let highlightGradeIdx = -1;
+        for(let i=0; i<unlocks.length; i++) {
+            if(unlocks[i] === row.level) {
+                highlightGradeIdx = i;
+                break;
+            }
+        }
+        
+        let trStyle = "";
+        if (highlightGradeIdx !== -1) {
+            let colorVar = grades[highlightGradeIdx].c;
+            trStyle = `style="background: color-mix(in srgb, ${colorVar} 15%, transparent); border-left: 3px solid ${colorVar};"`;
+        }
+        
+        html += `<tr ${trStyle}>`;
         html += `<td>${row.level}</td>`;
         if (category === 'forge') {
             let c = row.costNum !== undefined ? row.costNum : NaN;
@@ -1063,7 +1104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     triggerCalculate();
 });
 
-
 // =========================================
 // 승천 가이드 로직
 // =========================================
@@ -1086,20 +1126,28 @@ function switchGuideTab(tabId) {
     renderGuideTable();
 }
 
-function calculateUnlockCost(dataCategory, targetGradeIdx, discount, bonus) {
-    let data = Data[dataCategory];
-    if (!data) return Infinity;
+function getTargetLevelAndProb(cat, gradeIdx) {
+    let threshold = 0;
+    if (cat === 'forge') threshold = 1.0;
+    else if (cat === 'skill') threshold = 2.0;
+    else threshold = 4.32;
 
-    // 1. 해당 등급이 최초로 등장하는(확률 > 0) 레벨 찾기
-    let targetLevel = -1;
+    let data = Data[cat];
+    if (!data) return null;
+
     for (let row of data) {
-        if (row.probs[targetGradeIdx] > 0) {
-            targetLevel = row.level;
-            break;
+        let p = row.probs[gradeIdx];
+        if (p >= threshold) {
+            return { level: row.level, prob: p };
         }
     }
+    return null;
+}
 
-    if (targetLevel === -1) return Infinity;
+function calculateUnlockCost(dataCategory, targetGradeIdx, discount, bonus) {
+    let targetInfo = getTargetLevelAndProb(dataCategory, targetGradeIdx);
+    if (!targetInfo) return Infinity;
+    let targetLevel = targetInfo.level;
 
     // 2. calculators.js 의 계산 로직을 동일하게 호출 (0승천 1레벨 -> 0승천 targetLevel)
     if (dataCategory === 'skill') {
@@ -1149,17 +1197,9 @@ function setForgeGuideEquip(dots) {
 }
 
 function calculateForgeUnlockCost(targetGradeIdx, forgeDots, equipDots) {
-    let data = Data['forge'];
-    if (!data) return Infinity;
-
-    let targetLevel = -1;
-    for (let row of data) {
-        if (row.probs[targetGradeIdx] > 0) {
-            targetLevel = row.level;
-            break;
-        }
-    }
-    if (targetLevel === -1) return Infinity;
+    let targetInfo = getTargetLevelAndProb('forge', targetGradeIdx);
+    if (!targetInfo) return Infinity;
+    let targetLevel = targetInfo.level;
 
     let timeAccel = forgeDots * 0.02;
     let costReduction = forgeDots * 0.01;
@@ -1202,16 +1242,11 @@ function renderGuideTable() {
     }
 
     function getUnlockText(catKey, gradeIdx) {
-        let data = Data[catKey];
-        if (!data) return '';
-        for (let row of data) {
-            let p = row.probs[gradeIdx];
-            if (p > 0) {
-                let pStr = p % 1 === 0 ? p : p.toFixed(2).replace(/\.?0+$/, '');
-                return `${row.level}레벨 ${pStr}%`;
-            }
-        }
-        return '-';
+        let targetInfo = getTargetLevelAndProb(catKey, gradeIdx);
+        if (!targetInfo) return '-';
+        let p = targetInfo.prob;
+        let pStr = p % 1 === 0 ? p : p.toFixed(2).replace(/\.?0+$/, '');
+        return `${targetInfo.level}레벨 ${pStr}%`;
     }
 
     function buildThead(catName, currencyName, catKey) {
@@ -1270,10 +1305,33 @@ function renderGuideTable() {
     let petHtml = '';
     let mountHtml = '';
 
+    function getLabel(cat, dots) {
+        if (cat === 'forge') {
+            let sellPrice = dots * 0.01;
+            let refineChance = dots * 0.01;
+            let equipAvg = 99 + (forgeGuideEquipDots * 2);
+            let hammerBase = Math.round(20 * Math.pow(1.01, equipAvg - 1));
+            let hammerSell = hammerBase * (1 + sellPrice);
+            let refineMulti = 1 / (1 - refineChance);
+            let hammerValue = hammerSell * refineMulti;
+            let hammersFor1M = 1000000 / hammerValue;
+            
+            let baseLabel = `대장간 업글 시간 가속 ${dots * 2}%<br>대장간 업글 비용 감소 ${dots * 1}%<br>판매 가격 증가 ${dots * 1}%<br>무료 제련 기회 ${dots * 1}%`;
+            let badgeHtml = `<div style="margin-top: 10px; padding: 6px 8px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 6px; color: var(--gold); font-weight: bold; text-align: center; font-size: 13px;">골드 1m = 망치 ${hammersFor1M.toLocaleString(undefined, {maximumFractionDigits: 0})}개</div>`;
+            return baseLabel + badgeHtml;
+        } else if (cat === 'skill') {
+            return `스킬 소환 비용 감소 ${dots * 1}%`;
+        } else if (cat === 'pet') {
+            return `추가 알 기회 ${dots * 2}%`;
+        } else if (cat === 'mount') {
+            return `탈것 소환 비용 감소 ${dots * 1}%<br>추가 탈것 기회 ${dots * 2}%`;
+        }
+    }
+
     rows.forEach(r => {
         // --- Forge ---
         forgeHtml += `<tr style="border-bottom: 1px solid var(--border-color);">`;
-        forgeHtml += `<td style="padding: 30px 10px; border-right: 1px solid var(--border-color); font-weight: bold; font-size: 18px;">${r.label}</td>`;
+        forgeHtml += `<td style="padding: 20px 10px; border-right: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); line-height: 1.5; text-align: left;">${getLabel('forge', r.dots)}</td>`;
         forgeGrades.forEach((g, idx) => {
             let cost = calculateForgeUnlockCost(g, r.dots, forgeGuideEquipDots);
             let formattedCost;
@@ -1289,7 +1347,7 @@ function renderGuideTable() {
 
         // --- Skill ---
         skillHtml += `<tr style="border-bottom: 1px solid var(--border-color);">`;
-        skillHtml += `<td style="padding: 30px 10px; border-right: 1px solid var(--border-color); font-weight: bold; font-size: 18px;">${r.label}</td>`;
+        skillHtml += `<td style="padding: 20px 10px; border-right: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); line-height: 1.5; text-align: center;">${getLabel('skill', r.dots)}</td>`;
         let skillDiscount = r.dots * 0.01;
         grades.forEach((g, idx) => {
             let cost = calculateUnlockCost('skill', g, skillDiscount, 0);
@@ -1300,7 +1358,7 @@ function renderGuideTable() {
 
         // --- Pet ---
         petHtml += `<tr style="border-bottom: 1px solid var(--border-color);">`;
-        petHtml += `<td style="padding: 30px 10px; border-right: 1px solid var(--border-color); font-weight: bold; font-size: 18px;">${r.label}</td>`;
+        petHtml += `<td style="padding: 20px 10px; border-right: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); line-height: 1.5; text-align: center;">${getLabel('pet', r.dots)}</td>`;
         let petBonus = r.dots * 0.02;
         grades.forEach((g, idx) => {
             let cost = calculateUnlockCost('pet', g, 0, petBonus);
@@ -1311,7 +1369,7 @@ function renderGuideTable() {
 
         // --- Mount ---
         mountHtml += `<tr style="border-bottom: 1px solid var(--border-color);">`;
-        mountHtml += `<td style="padding: 30px 10px; border-right: 1px solid var(--border-color); font-weight: bold; font-size: 18px;">${r.label}</td>`;
+        mountHtml += `<td style="padding: 20px 10px; border-right: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); line-height: 1.5; text-align: center;">${getLabel('mount', r.dots)}</td>`;
         let mountDiscount = r.dots * 0.01;
         let mountBonus = r.dots * 0.02;
         grades.forEach((g, idx) => {
@@ -1361,3 +1419,248 @@ function initGalaxyBackground() {
 
 // 스크립트가 로드되면 바로 배경 추가
 initGalaxyBackground();
+
+// --- League / War Rendering Logic ---
+function switchLeagueTab(tabId) {
+    document.getElementById('league_clanWarRewards').style.display = 'none';
+    document.getElementById('league_rankedLeagueRewards').style.display = 'none';
+    document.getElementById('league_individualClanRewards').style.display = 'none';
+    document.getElementById('league_clanWarDayActions').style.display = 'none';
+
+    document.getElementById(`league_${tabId}`).style.display = 'block';
+
+    const btns = document.querySelectorAll('#leaguePage .g-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    document.getElementById(`leagueTab_${tabId}`).classList.add('active');
+
+    if(tabId === 'clanWarRewards') renderClanWarRewards();
+    if(tabId === 'rankedLeagueRewards') renderRankedLeagueRewards();
+    if(tabId === 'individualClanRewards') renderIndividualClanRewards();
+    if(tabId === 'clanWarDayActions') renderClanWarDayActions();
+}
+
+function getIconImg(name, size=32) {
+    return `<img src="icon/${size}/${name}.png" alt="${name}" style="width:${size}px; height:${size}px; vertical-align:middle;">`;
+}
+
+function renderClanWarRewards() {
+    const thead = document.getElementById('league_cwr_thead');
+    const tbody = document.getElementById('league_cwr_tbody');
+    
+    let theadHtml = `
+        <tr style="background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--border-color);">
+            <th rowspan="2" style="padding: 10px; border-right: 2px solid var(--border-color); width: 6%;">보상</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-mythic); width: 11.75%;">Tier SSS</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-ultimate); width: 11.75%;">Tier SS</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-legendary); width: 11.75%;">Tier S</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-epic); width: 11.75%;">Tier A</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-rare); width: 11.75%;">Tier B</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--color-common); width: 11.75%;">Tier C</th>
+            <th colspan="2" style="padding: 10px; border-right: 1px solid var(--border-color); color:var(--text-muted); width: 11.75%;">Tier D</th>
+            <th colspan="2" style="padding: 10px; color:var(--text-muted); width: 11.75%;">Tier E</th>
+        </tr>
+        <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color);">
+    `;
+    for(let i=0; i<8; i++) {
+        let borderStr = i === 7 ? '' : 'border-right: 1px solid var(--border-color);';
+        theadHtml += `<th style="padding: 5px; color:var(--green); font-size:14px;">승리</th><th style="padding: 5px; ${borderStr} color:var(--red); font-size:14px;">패배</th>`;
+    }
+    theadHtml += `</tr>`;
+    thead.innerHTML = theadHtml;
+
+    let tbodyHtml = ``;
+    const order = ["hammer", "ticket", "egg", "red_potion", "gear", "green_potion"];
+    order.forEach(res => {
+        let vals = Data.clanWarRewards[res] || [];
+        tbodyHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 10px; border-right: 2px solid var(--border-color);">${getIconImg(res)}</td>
+        `;
+        for(let i=0; i<16; i++) {
+            let borderStr = (i % 2 === 1 && i !== 15) ? 'border-right: 1px solid var(--border-color);' : '';
+            let color = i % 2 === 0 ? 'var(--text-main)' : 'var(--text-muted)';
+            tbodyHtml += `<td style="padding: 10px; ${borderStr} color: ${color}; font-size:16px;">${vals[i] || '-'}</td>`;
+        }
+        tbodyHtml += `</tr>`;
+    });
+    tbody.innerHTML = tbodyHtml;
+}
+
+function renderRankedLeagueRewards() {
+    const thead = document.getElementById('league_rlr_thead');
+    const tbody = document.getElementById('league_rlr_tbody');
+    
+    thead.innerHTML = '';
+    let tbodyHtml = '';
+    
+    
+    const leagueNames = {
+        'Diamond': '다이아몬드',
+        'Platinum': '플래티넘',
+        'Gold': '골드',
+        'Silver': '실버',
+        'Bronze': '브론즈',
+        'Unranked': '언랭크'
+    };
+    
+    const pairs = [
+        {l1: 'Diamond', l2: 'Platinum', color1: '#00e5ff', color2: '#e5e4e2'},
+        {l1: 'Gold', l2: 'Silver', color1: '#ffd700', color2: '#c0c0c0'},
+        {l1: 'Bronze', l2: 'Unranked', color1: '#cd7f32', color2: '#8d6e63'}
+    ];
+
+    pairs.forEach((pair, idx) => {
+        // Headers for the dual-leagues
+        tbodyHtml += `
+            <tr style="background: rgba(0,0,0,0.6); ${idx > 0 ? 'border-top: 2px solid var(--border-color);' : ''}">
+                <th colspan="7" style="padding: 15px; text-align:center; color:${pair.color1}; font-size:20px; border-right: 2px solid var(--border-color); text-shadow: 0 0 5px ${pair.color1}44;">
+                    ${leagueNames[pair.l1]}<br>
+                    <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">${Data.rankedLeagueRewards[pair.l1]["Promotion"] || ''}</span>
+                </th>
+                <th colspan="7" style="padding: 15px; text-align:center; color:${pair.color2}; font-size:20px; text-shadow: 0 0 5px ${pair.color2}44;">
+                    ${leagueNames[pair.l2]}<br>
+                    <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">${Data.rankedLeagueRewards[pair.l2]["Promotion"] || ''}</span>
+                </th>
+            </tr>
+            <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 10px; width:10%; border-right: 1px solid rgba(255,255,255,0.1);">순위</th>
+                <th style="width:7%;">${getIconImg('hammer')}</th><th style="width:7%;">${getIconImg('gold')}</th><th style="width:7%;">${getIconImg('ticket')}</th><th style="width:7%;">${getIconImg('egg')}</th><th style="width:7%;">${getIconImg('red_potion')}</th><th style="width:7%; border-right: 2px solid var(--border-color);">${getIconImg('gear')}</th>
+                <th style="padding: 10px; width:10%; border-right: 1px solid rgba(255,255,255,0.1);">순위</th>
+                <th style="width:7%;">${getIconImg('hammer')}</th><th style="width:7%;">${getIconImg('gold')}</th><th style="width:7%;">${getIconImg('ticket')}</th><th style="width:7%;">${getIconImg('egg')}</th><th style="width:7%;">${getIconImg('red_potion')}</th><th style="width:7%;">${getIconImg('gear')}</th>
+            </tr>
+        `;
+        
+        let ranks = ["1", "2", "3", "4-5", "6-10", "11-20", "21-50", "51-100"];
+        ranks.forEach(r => {
+            let v1 = Data.rankedLeagueRewards[pair.l1][r] || [];
+            let v2 = Data.rankedLeagueRewards[pair.l2][r] || [];
+            
+            // Skip rendering if both are empty (like missing data for unranked)
+            if(v1.length === 0 && v2.length === 0) return;
+            
+            let displayR = r;
+            if(r === "1") displayR = "🥇";
+            if(r === "2") displayR = "🥈";
+            if(r === "3") displayR = "🥉";
+
+            tbodyHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 10px; font-weight:bold; border-right: 1px solid rgba(255,255,255,0.1); color:var(--text-main);">${displayR}</td>`;
+            for(let i=0; i<6; i++) {
+                let borderStr = i===5 ? 'border-right: 2px solid var(--border-color);' : 'border-right: 1px solid rgba(255,255,255,0.1);';
+                tbodyHtml += `<td style="padding: 10px; font-size:16px; ${borderStr}">${v1[i] || '-'}</td>`;
+            }
+            
+            tbodyHtml += `<td style="padding: 10px; font-weight:bold; border-right: 1px solid rgba(255,255,255,0.1); color:var(--text-main);">${displayR}</td>`;
+            for(let i=0; i<6; i++) {
+                let borderStr2 = i===5 ? '' : 'border-right: 1px solid rgba(255,255,255,0.1);';
+                tbodyHtml += `<td style="padding: 10px; font-size:16px; ${borderStr2}">${v2[i] || '-'}</td>`;
+            }
+            tbodyHtml += `</tr>`;
+        });
+    });
+    tbody.innerHTML = tbodyHtml;
+}
+
+function renderIndividualClanRewards() {
+    const thead = document.getElementById('league_icr_thead');
+    const tbody = document.getElementById('league_icr_tbody');
+    
+    const milestones = ["1만", "2만", "5만", "7.5만", "10만", "15만", "20만", "25만", "30만", "35만", "40만", "45만", "50만", "60만", "70만", "80만", "90만", "100만", "합계"];
+    
+    let theadHtml = `
+        <tr style="background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--border-color);">
+            <th style="padding: 10px; border-right: 2px solid var(--border-color); width: 5%;">보상</th>
+    `;
+    milestones.forEach(m => {
+        let isTotal = m === "합계";
+        let color = isTotal ? 'var(--text-highlight)' : 'var(--text-main)';
+        let bg = isTotal ? 'background: rgba(255,255,255,0.1);' : '';
+        theadHtml += `<th style="padding: 5px; font-size:14px; width:5%; color:${color}; border-right: 1px solid rgba(255,255,255,0.1); ${bg}">${m}</th>`;
+    });
+    theadHtml += `</tr>`;
+    thead.innerHTML = theadHtml;
+
+    let tbodyHtml = ``;
+    const order = ["hammer", "ticket", "egg", "gold", "red_potion", "gear", "green_potion"];
+    order.forEach(res => {
+        let vals = Data.individualClanRewards[res] || [];
+        tbodyHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 10px; border-right: 2px solid var(--border-color);">${getIconImg(res)}</td>
+        `;
+        for(let i=0; i<milestones.length; i++) {
+            let val = vals[i] || "0";
+            let color = val === "0" ? 'rgba(255,255,255,0.1)' : 'var(--text-main)';
+            let bg = i === milestones.length - 1 ? 'background: rgba(255,255,255,0.05); color: var(--text-highlight); font-weight:bold;' : '';
+            tbodyHtml += `<td style="padding: 10px; color: ${color}; font-size:16px; border-right: 1px solid rgba(255,255,255,0.1); ${bg}">${val === "0" && i !== milestones.length - 1 ? '-' : val}</td>`;
+        }
+        tbodyHtml += `</tr>`;
+    });
+    tbody.innerHTML = tbodyHtml;
+}
+
+function renderClanWarDayActions() {
+    const thead = document.getElementById('league_cwda_thead');
+    const tbody = document.getElementById('league_cwda_tbody');
+    
+    let days = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6"];
+    let korDays = ["화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
+    
+    let theadHtml = `
+        <tr style="background: rgba(0,0,0,0.6); border-bottom: 1px solid var(--border-color);">
+    `;
+    days.forEach((d, i) => {
+        let borderStr = i === 5 ? '' : 'border-right: 1px solid var(--border-color);';
+        theadHtml += `<th style="padding: 15px 5px; ${borderStr} width: 16.66%;">
+            <div style="font-size: 20px; color:var(--text-main); margin-bottom: 6px;">${d}</div>
+            <div style="font-size: 14px; font-weight: normal; color:var(--text-highlight);">${korDays[i]}</div>
+        </th>`;
+    });
+    theadHtml += `</tr>`;
+    thead.innerHTML = theadHtml;
+
+    let tbodyHtml = ``;
+    let actions = Data.clanWarDayActions || [];
+    
+    actions.forEach(row => {
+        tbodyHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">`;
+        
+        for(let i=0; i<6; i++) {
+            let actionText = row[i];
+            let borderStr = i === 5 ? '' : 'border-right: 1px solid rgba(255,255,255,0.05);';
+            if(actionText) {
+                // Add icons based on exact translation map matching user request
+                let iconHtml = '';
+                if(actionText.includes("기술트리 업그레이드")) {
+                    iconHtml = getIconImg("red_potion", 16) + " ";
+                } else if(actionText.includes("대장간") || actionText.includes("장비 제작")) {
+                    iconHtml = getIconImg("hammer", 16) + " ";
+                } else if(actionText.includes("스킬 소환") || actionText.includes("스킬 업그레이드")) {
+                    iconHtml = getIconImg("ticket", 16) + " ";
+                } else if(actionText.includes("알 부화") || actionText.includes("펫 합치기")) {
+                    iconHtml = getIconImg("egg", 16) + " ";
+                } else if(actionText.includes("탈것 소환") || actionText.includes("탈것 합치기")) {
+                    iconHtml = getIconImg("gear", 16) + " ";
+                }
+                // No icon for 던전 키 사용, 전면전 승리, 라이벌 클랜 멤버 물리치기
+                
+                actionText = iconHtml + actionText;
+                
+                tbodyHtml += `<td style="padding: 15px 10px; ${borderStr} text-align:left; font-size:16px;">
+                    <div style="color:var(--text-main); line-height:1.4;">${actionText}</div>
+                </td>`;
+            } else {
+                tbodyHtml += `<td style="padding: 15px 10px; ${borderStr}"></td>`;
+            }
+        }
+        tbodyHtml += `</tr>`;
+    });
+    tbody.innerHTML = tbodyHtml;
+}
+
+// Ensure the first tab is rendered when switched
+// Wait, we can just call it once when the league tab is loaded, or inside switchLeagueTab.
+// The main switchTab function in app.js hides other pages and shows the selected one. 
+// We should intercept it to also trigger the first sub-tab of League Page if needed.
+// Actually, switchLeagueTab('clanWarRewards') can be called initially or we can let the user click.
+// Let's call it right away so it has content.
+switchLeagueTab('rankedLeagueRewards');
+

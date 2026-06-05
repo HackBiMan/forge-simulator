@@ -23,7 +23,9 @@
             <button class="nav-tab" onclick="switchTab('petPage', this)">펫</button>
             <button class="nav-tab" onclick="switchTab('mountPage', this)">탈것</button>
             <button class="nav-tab" onclick="switchTab('guidePage', this)"
-                style="color: #d066ff; margin-left: auto;">승천 가이드</button>
+                style="color: #d066ff;">승천 가이드</button>
+            <button class="nav-tab" onclick="switchTab('leaguePage', this)"
+                style="color: #ffaa00; margin-left: auto;">리그/전쟁</button>
             <button class="nav-tab" onclick="switchTab('dataPage', this)"
                 style="color: var(--neon-cyan);">확률 도감</button>
         </div>
@@ -52,20 +54,6 @@
             <div class="card">
                 <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">스킬 기술트리 입력</h2>
-                    <div class="global-tier-btns-wrap">
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 0)">초기화</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 1)">T1 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 2)">T2 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 3)">T3 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 4)">T4 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('skill', 5)">T5 MAX</button>
-                    </div>
                 </div>
                 <div id="skillTiers" class="equip-grid"></div>
             </div>
@@ -78,20 +66,6 @@
             <div class="card">
                 <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">펫 기술트리 입력</h2>
-                    <div class="global-tier-btns-wrap">
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 0)">초기화</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 1)">T1 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 2)">T2 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 3)">T3 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 4)">T4 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('pet', 5)">T5 MAX</button>
-                    </div>
                 </div>
                 <div id="petTiers" class="equip-grid"></div>
             </div>
@@ -104,20 +78,6 @@
             <div class="card">
                 <div class="tech-tree-header">
                     <h2 style="margin: 0; border: none; padding: 0;">탈것 기술트리 입력</h2>
-                    <div class="global-tier-btns-wrap">
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 0)">초기화</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 1)">T1 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 2)">T2 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 3)">T3 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 4)">T4 MAX</button>
-                        <button class="g-btn" style="padding: 4px 10px; font-size: 13px; min-width: 50px;"
-                            onclick="setGlobalTier('mount', 5)">T5 MAX</button>
-                    </div>
                 </div>
                 <div id="mountTiers" class="equip-grid">
                     <div id="mountCostTiers"></div>
@@ -131,15 +91,17 @@
         <!-- 통합 확률 도감 탭 -->
         <div id="dataPage" class="page">
             <div class="card">
-                <h2>통합 확률 도감 (기술트리 미반영)</h2>
+                <h2 style="text-align: center;">확률 도감 (기술트리 미반영)</h2>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
-                    <div class="global-tier-btns" style="margin-bottom: 0; display: flex; flex-wrap: wrap; gap: 10px; width: fit-content;">
+                    <div class="global-tier-btns" style="margin-bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; flex: 1;">
                         <button class="g-btn active" onclick="showDataTab('forge')">대장간</button>
                         <button class="g-btn" onclick="showDataTab('skill')">스킬</button>
                         <button class="g-btn" onclick="showDataTab('pet')">펫</button>
                         <button class="g-btn" onclick="showDataTab('mount')">탈것</button>
                     </div>
-                    <button id="data_sortBtn" class="g-btn" style="background: rgba(208, 102, 255, 0.2); border-color: var(--accent); color: var(--text-main);" onclick="toggleDataSort()">정렬: 오름차순 (저렙 ➔ 고렙)</button>
+                    <div class="global-tier-btns" style="margin-bottom: 0;">
+                        <button id="data_sortBtn" class="g-btn" style="background: rgba(208, 102, 255, 0.2); border-color: var(--accent); color: var(--text-main); height: 100%;" onclick="toggleDataSort()">정렬: 내림차순 (고렙 ➔ 저렙)</button>
+                    </div>
                 </div>
                 <div id="data_table_container"
                     style="overflow-x: auto; max-height: 600px; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -150,8 +112,8 @@
         <!-- 승천 가이드 탭 -->
         <div id="guidePage" class="page">
             <div class="card">
-                <h2>승천 가이드</h2>
-                <div class="global-tier-btns" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+                <h2 style="text-align: center;">승천 가이드</h2>
+                <div class="global-tier-btns" style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                     <button class="g-btn active" id="guideTab_forge" onclick="switchGuideTab('forge')">대장간</button>
                     <button class="g-btn" id="guideTab_skill" onclick="switchGuideTab('skill')">스킬</button>
                     <button class="g-btn" id="guideTab_pet" onclick="switchGuideTab('pet')">펫</button>
@@ -160,17 +122,17 @@
                 
                 <div id="guide_forge" style="display: block; height: 100%;">
                     <div class="guide-control-bar">
-                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">장비레벨 기술트리:</span>
+                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">장비레벨 :</span>
                         <div id="forgeGuideEquipBtns" class="global-tier-btns-wrap">
-                            <button class="g-btn active" onclick="setForgeGuideEquip(0)">T0</button>
-                            <button class="g-btn" onclick="setForgeGuideEquip(5)">T1 MAX</button>
-                            <button class="g-btn" onclick="setForgeGuideEquip(10)">T2 MAX</button>
-                            <button class="g-btn" onclick="setForgeGuideEquip(15)">T3 MAX</button>
-                            <button class="g-btn" onclick="setForgeGuideEquip(20)">T4 MAX</button>
-                            <button class="g-btn" onclick="setForgeGuideEquip(25)">T5 MAX</button>
+                            <button class="g-btn active" onclick="setForgeGuideEquip(0)">99</button>
+                            <button class="g-btn" onclick="setForgeGuideEquip(5)">109</button>
+                            <button class="g-btn" onclick="setForgeGuideEquip(10)">119</button>
+                            <button class="g-btn" onclick="setForgeGuideEquip(15)">129</button>
+                            <button class="g-btn" onclick="setForgeGuideEquip(20)">139</button>
+                            <button class="g-btn" onclick="setForgeGuideEquip(25)">149</button>
                         </div>
                         <div class="guide-divider"></div>
-                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">표시 단위:</span>
+                        <span style="font-size: 16px; font-weight: bold; color: var(--gold); white-space: nowrap;">단위 :</span>
                         <div id="forgeGuideDisplayBtns" class="global-tier-btns-wrap">
                             <button class="g-btn active" onclick="setForgeGuideDisplay('gold')">필요 골드</button>
                             <button class="g-btn" onclick="setForgeGuideDisplay('hammer')">필요 망치</button>
@@ -207,6 +169,55 @@
                         <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 18px;">
                             <thead id="guide_mount_thead"></thead>
                             <tbody id="guide_mount_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 리그/전쟁 탭 -->
+        <div id="leaguePage" class="page">
+            <div class="card">
+                <h2 style="text-align: center;">리그/전쟁 보상 정리</h2>
+                <div class="global-tier-btns" style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <button class="g-btn active" id="leagueTab_rankedLeagueRewards" onclick="switchLeagueTab('rankedLeagueRewards')">개인 리그 보상</button>
+                    <button class="g-btn" id="leagueTab_clanWarRewards" onclick="switchLeagueTab('clanWarRewards')">클랜 전쟁 보상</button>
+                    <button class="g-btn" id="leagueTab_individualClanRewards" onclick="switchLeagueTab('individualClanRewards')">개인 클랜 보상</button>
+                    <button class="g-btn" id="leagueTab_clanWarDayActions" onclick="switchLeagueTab('clanWarDayActions')">전쟁 일일 미션</button>
+                </div>
+
+                <div id="league_clanWarRewards" style="display: block; height: 100%;">
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
+                            <thead id="league_cwr_thead"></thead>
+                            <tbody id="league_cwr_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="league_rankedLeagueRewards" style="display: none; height: 100%;">
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
+                            <thead id="league_rlr_thead"></thead>
+                            <tbody id="league_rlr_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="league_individualClanRewards" style="display: none; height: 100%;">
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
+                            <thead id="league_icr_thead"></thead>
+                            <tbody id="league_icr_tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="league_clanWarDayActions" style="display: none; height: 100%;">
+                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
+                            <thead id="league_cwda_thead"></thead>
+                            <tbody id="league_cwda_tbody"></tbody>
                         </table>
                     </div>
                 </div>

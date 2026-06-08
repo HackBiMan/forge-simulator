@@ -46,13 +46,18 @@ body {
 
 .nav-brand-container {
     display: flex;
-    align-items: baseline;
-    gap: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 
 .nav-author {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 5px rgba(208, 102, 255, 0.4);
+    white-space: nowrap;
 }
 
 .global-tier-btns {
@@ -104,6 +109,7 @@ body {
     font-weight: bold;
     color: var(--gold);
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
 .nav-links {
@@ -120,6 +126,7 @@ body {
     cursor: pointer;
     border-radius: 8px;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-tab:hover {
@@ -787,6 +794,18 @@ tr:last-child td {
         padding: 10px;
         flex-direction: column;
         gap: 15px;
+    }
+    .nav-brand-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    .nav-brand {
+        font-size: 20px;
+        white-space: nowrap;
+    }
+    .nav-author {
+        font-size: 12px;
     }
     .nav-links {
         width: 100%;

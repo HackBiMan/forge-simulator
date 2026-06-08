@@ -718,16 +718,37 @@ function switchTab(pageId, btn) {
 // -----------------------------------------
 // Simulator & Data Dictionary Logic
 // -----------------------------------------
-let dataSortDesc = true;
+let dataSortDesc = false;
+let dataMajorLevelsOnly = true;
 let currentDataTab = 'forge';
+
+const MAJOR_LEVELS = {
+  "forge": [1, 14, 17, 20, 23, 24, 28, 29, 33, 35],
+  "skill": [1, 8, 14, 18, 24, 39, 45, 68, 74, 100],
+  "pet": [1, 7, 12, 28, 36, 46, 54, 71, 79, 100],
+  "mount": [1, 22, 30, 38, 46, 55, 63, 71, 79, 100]
+};
+
+function toggleMajorLevels() {
+    dataMajorLevelsOnly = !dataMajorLevelsOnly;
+    let btn = document.getElementById('data_majorBtn');
+    if (dataMajorLevelsOnly) {
+        btn.classList.add('active');
+    } else {
+        btn.classList.remove('active');
+    }
+    showDataTab(currentDataTab);
+}
 
 function toggleDataSort() {
     dataSortDesc = !dataSortDesc;
     let btn = document.getElementById('data_sortBtn');
     if (dataSortDesc) {
         btn.innerText = '정렬: 내림차순 (고렙 ➔ 저렙)';
+        btn.classList.add('active');
     } else {
         btn.innerText = '정렬: 오름차순 (저렙 ➔ 고렙)';
+        btn.classList.remove('active');
     }
     showDataTab(currentDataTab);
 }
@@ -736,15 +757,22 @@ function showDataTab(category) {
     currentDataTab = category;
     // Update active button
     document.querySelectorAll('#dataPage .global-tier-btns .g-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(category)) btn.classList.add('active');
+        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('showDataTab')) {
+            btn.classList.remove('active');
+            if (btn.getAttribute('onclick').includes(category)) btn.classList.add('active');
+        }
     });
 
-    let data = Data[category];
-    if (!data) return;
+    let originalData = Data[category];
+    if (!originalData) return;
+    
+    let data = originalData;
+    if (dataMajorLevelsOnly && MAJOR_LEVELS[category]) {
+        data = originalData.filter(row => MAJOR_LEVELS[category].includes(row.level));
+    }
 
     let html = `<table class="data-table"><thead><tr>`;
-    html += `<th>Level</th>`;
+    html += `<th>Info</th><th>Level</th>`;
 
     let grades = [];
     if (category === 'forge') {
@@ -780,7 +808,7 @@ function showDataTab(category) {
     });
     html += `</tr></thead><tbody>`;
 
-    // Calculate unlocks for highlighting
+    // Calculate unlocks for highlighting and info
     let startIdx = 0;
     let threshold = 0;
     if (category === 'forge') { startIdx = 5; threshold = 1.0; }
@@ -788,10 +816,28 @@ function showDataTab(category) {
     else { startIdx = 2; threshold = 4.32; }
 
     let unlocks = new Array(grades.length).fill(0);
-    data.forEach(row => {
+    let firstUnlocks = new Array(grades.length).fill(0);
+    let infoTextMap = {};
+    let maxLvl = originalData[originalData.length - 1].level;
+
+    infoTextMap[1] = "시작";
+    infoTextMap[maxLvl] = "최고 레벨 도달";
+
+    originalData.forEach(row => {
         row.probs.forEach((p, idx) => {
-            if (idx >= startIdx && p >= threshold && unlocks[idx] === 0) {
-                unlocks[idx] = row.level;
+            if (idx >= startIdx) {
+                if (p > 0 && firstUnlocks[idx] === 0) {
+                    firstUnlocks[idx] = row.level;
+                    if (row.level !== 1 && row.level !== maxLvl) {
+                        infoTextMap[row.level] = `${grades[idx].n} 해금`;
+                    }
+                }
+                if (p >= threshold && unlocks[idx] === 0) {
+                    unlocks[idx] = row.level;
+                    if (row.level !== 1 && row.level !== maxLvl) {
+                        infoTextMap[row.level] = `${grades[idx].n} 획득`;
+                    }
+                }
             }
         });
     });
@@ -800,10 +846,9 @@ function showDataTab(category) {
 
     displayData.forEach(row => {
         let highlightGradeIdx = -1;
-        for(let i=0; i<unlocks.length; i++) {
-            if(unlocks[i] === row.level) {
+        for(let i=0; i<grades.length; i++) {
+            if(unlocks[i] === row.level || firstUnlocks[i] === row.level) {
                 highlightGradeIdx = i;
-                break;
             }
         }
         
@@ -812,15 +857,33 @@ function showDataTab(category) {
             let colorVar = grades[highlightGradeIdx].c;
             trStyle = `style="background: color-mix(in srgb, ${colorVar} 15%, transparent); border-left: 3px solid ${colorVar};"`;
         }
+
+        let highestGradeIdx = -1;
+        for (let i = row.probs.length - 1; i >= 0; i--) {
+            if (row.probs[i] > 0) {
+                highestGradeIdx = i;
+                break;
+            }
+        }
+        let highestColor = "var(--text-main)";
+        if (highestGradeIdx !== -1) {
+            highestColor = grades[highestGradeIdx].c;
+        }
+
+        let badgeStyle = `style="--badge-color: ${highestColor}"`;
+        let infoText = infoTextMap[row.level] || "-";
+        let infoStyle = `style="color: ${highestColor}; font-weight: bold; text-align: center;"`;
+        let metaStyle = `style="font-weight: bold;"`;
         
         html += `<tr ${trStyle}>`;
-        html += `<td>${row.level}</td>`;
+        html += `<td ${infoStyle}>${infoText}</td>`;
+        html += `<td ${metaStyle}>${row.level}</td>`;
         if (category === 'forge') {
             let c = row.costNum !== undefined ? row.costNum : NaN;
             let timeStr = row.time || "N/A";
-            html += `<td>${isNaN(c) ? "N/A" : formatNumber(c)}</td><td>${timeStr}</td>`;
+            html += `<td ${metaStyle}>${isNaN(c) ? "N/A" : formatNumber(c)}</td><td style="white-space: nowrap; font-weight: bold;">${timeStr}</td>`;
         } else {
-            html += `<td>${row.summonNum}</td>`;
+            html += `<td ${metaStyle}>${row.summonNum}</td>`;
         }
         
         let displayProbs = dataSortDesc ? [...row.probs].reverse() : row.probs;
@@ -1259,7 +1322,7 @@ function renderGuideTable() {
             let borderStr = g === 5 ? '' : 'border-right: 1px solid rgba(255,255,255,0.1);';
             html += `<th style="padding: 20px 5px; ${borderStr} color: ${gradeColors[i]}; width: 20%;">
                 <div style="font-size: 20px; margin-bottom: 6px;">${gradeNames[i]}</div>
-                <div style="font-size: 14px; opacity: 0.8; font-weight: normal; color: var(--text-muted);">(${unlockStr})</div>
+                <div style="font-size: 14px; font-weight: normal; color: #ffffff;">(${unlockStr})</div>
             </th>`;
         });
 
@@ -1278,7 +1341,7 @@ function renderGuideTable() {
             let borderStr = g === 9 ? '' : 'border-right: 1px solid rgba(255,255,255,0.1);';
             html += `<th style="padding: 20px 5px; ${borderStr} color: ${forgeGradeColors[i]}; width: 16.66%;">
                 <div style="font-size: 20px; margin-bottom: 6px;">${forgeGradeNames[i]}</div>
-                <div style="font-size: 14px; opacity: 0.8; font-weight: normal; color: var(--text-muted);">(${unlockStr})</div>
+                <div style="font-size: 14px; font-weight: normal; color: #ffffff;">(${unlockStr})</div>
             </th>`;
         });
 
@@ -1486,78 +1549,76 @@ function renderClanWarRewards() {
 }
 
 function renderRankedLeagueRewards() {
-    const thead = document.getElementById('league_rlr_thead');
-    const tbody = document.getElementById('league_rlr_tbody');
+    const container = document.getElementById('league_rlr_container');
+    if (!container) return;
+    container.innerHTML = '';
     
-    thead.innerHTML = '';
-    let tbodyHtml = '';
-    
-    
-    const leagueNames = {
-        'Diamond': '다이아몬드',
-        'Platinum': '플래티넘',
-        'Gold': '골드',
-        'Silver': '실버',
-        'Bronze': '브론즈',
-        'Unranked': '언랭크'
-    };
-    
-    const pairs = [
-        {l1: 'Diamond', l2: 'Platinum', color1: '#00e5ff', color2: '#e5e4e2'},
-        {l1: 'Gold', l2: 'Silver', color1: '#ffd700', color2: '#c0c0c0'},
-        {l1: 'Bronze', l2: 'Unranked', color1: '#cd7f32', color2: '#8d6e63'}
+    const leagues = [
+        { id: 'Diamond', name: '다이아몬드', color: '#00e5ff' },
+        { id: 'Platinum', name: '플래티넘', color: '#e5e4e2' },
+        { id: 'Gold', name: '골드', color: '#ffd700' },
+        { id: 'Silver', name: '실버', color: '#c0c0c0' },
+        { id: 'Bronze', name: '브론즈', color: '#cd7f32' },
+        { id: 'Unranked', name: '언랭크', color: '#8d6e63' }
     ];
 
-    pairs.forEach((pair, idx) => {
-        // Headers for the dual-leagues
-        tbodyHtml += `
-            <tr style="background: rgba(0,0,0,0.6); ${idx > 0 ? 'border-top: 2px solid var(--border-color);' : ''}">
-                <th colspan="7" style="padding: 15px; text-align:center; color:${pair.color1}; font-size:20px; border-right: 2px solid var(--border-color); text-shadow: 0 0 5px ${pair.color1}44;">
-                    ${leagueNames[pair.l1]}<br>
-                    <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">${Data.rankedLeagueRewards[pair.l1]["Promotion"] || ''}</span>
-                </th>
-                <th colspan="7" style="padding: 15px; text-align:center; color:${pair.color2}; font-size:20px; text-shadow: 0 0 5px ${pair.color2}44;">
-                    ${leagueNames[pair.l2]}<br>
-                    <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">${Data.rankedLeagueRewards[pair.l2]["Promotion"] || ''}</span>
-                </th>
-            </tr>
-            <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color);">
-                <th style="padding: 10px; width:10%; border-right: 1px solid rgba(255,255,255,0.1);">순위</th>
-                <th style="width:7%;">${getIconImg('hammer')}</th><th style="width:7%;">${getIconImg('gold')}</th><th style="width:7%;">${getIconImg('ticket')}</th><th style="width:7%;">${getIconImg('egg')}</th><th style="width:7%;">${getIconImg('red_potion')}</th><th style="width:7%; border-right: 2px solid var(--border-color);">${getIconImg('gear')}</th>
-                <th style="padding: 10px; width:10%; border-right: 1px solid rgba(255,255,255,0.1);">순위</th>
-                <th style="width:7%;">${getIconImg('hammer')}</th><th style="width:7%;">${getIconImg('gold')}</th><th style="width:7%;">${getIconImg('ticket')}</th><th style="width:7%;">${getIconImg('egg')}</th><th style="width:7%;">${getIconImg('red_potion')}</th><th style="width:7%;">${getIconImg('gear')}</th>
-            </tr>
-        `;
-        
+    let html = '';
+    
+    leagues.forEach(league => {
         let ranks = ["1", "2", "3", "4-5", "6-10", "11-20", "21-50", "51-100"];
+        
+        let tableRows = '';
         ranks.forEach(r => {
-            let v1 = Data.rankedLeagueRewards[pair.l1][r] || [];
-            let v2 = Data.rankedLeagueRewards[pair.l2][r] || [];
-            
-            // Skip rendering if both are empty (like missing data for unranked)
-            if(v1.length === 0 && v2.length === 0) return;
+            let v = Data.rankedLeagueRewards[league.id] ? Data.rankedLeagueRewards[league.id][r] : null;
+            if(!v) return; // Skip empty
             
             let displayR = r;
             if(r === "1") displayR = "🥇";
             if(r === "2") displayR = "🥈";
             if(r === "3") displayR = "🥉";
 
-            tbodyHtml += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            tableRows += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                 <td style="padding: 10px; font-weight:bold; border-right: 1px solid rgba(255,255,255,0.1); color:var(--text-main);">${displayR}</td>`;
             for(let i=0; i<6; i++) {
-                let borderStr = i===5 ? 'border-right: 2px solid var(--border-color);' : 'border-right: 1px solid rgba(255,255,255,0.1);';
-                tbodyHtml += `<td style="padding: 10px; font-size:16px; ${borderStr}">${v1[i] || '-'}</td>`;
+                let borderStr = i===5 ? '' : 'border-right: 1px solid rgba(255,255,255,0.1);';
+                tableRows += `<td style="padding: 10px; font-size:16px; ${borderStr}">${v[i] || '-'}</td>`;
             }
-            
-            tbodyHtml += `<td style="padding: 10px; font-weight:bold; border-right: 1px solid rgba(255,255,255,0.1); color:var(--text-main);">${displayR}</td>`;
-            for(let i=0; i<6; i++) {
-                let borderStr2 = i===5 ? '' : 'border-right: 1px solid rgba(255,255,255,0.1);';
-                tbodyHtml += `<td style="padding: 10px; font-size:16px; ${borderStr2}">${v2[i] || '-'}</td>`;
-            }
-            tbodyHtml += `</tr>`;
+            tableRows += `</tr>`;
         });
+
+        if(tableRows === '') return;
+
+        let promotionText = Data.rankedLeagueRewards[league.id] ? Data.rankedLeagueRewards[league.id]["Promotion"] || '' : '';
+
+        html += `
+            <div class="league-table-wrapper">
+                <table class="guide-table" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.6);">
+                            <th colspan="7" style="padding: 15px; text-align:center; color:${league.color}; background: color-mix(in srgb, ${league.color} 20%, transparent); font-size:20px; text-shadow: 0 0 5px ${league.color}44;">
+                                ${league.name}<br>
+                                <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">${promotionText}</span>
+                            </th>
+                        </tr>
+                        <tr style="background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color);">
+                            <th style="padding: 10px; width:15%; border-right: 1px solid rgba(255,255,255,0.1);">순위</th>
+                            <th style="width:14%;">${getIconImg('hammer')}</th>
+                            <th style="width:14%;">${getIconImg('gold')}</th>
+                            <th style="width:14%;">${getIconImg('ticket')}</th>
+                            <th style="width:14%;">${getIconImg('egg')}</th>
+                            <th style="width:14%;">${getIconImg('red_potion')}</th>
+                            <th style="width:15%;">${getIconImg('gear')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+        `;
     });
-    tbody.innerHTML = tbodyHtml;
+    
+    container.innerHTML = html;
 }
 
 function renderIndividualClanRewards() {
@@ -1639,8 +1700,10 @@ function renderClanWarDayActions() {
                     iconHtml = getIconImg("egg", 16) + " ";
                 } else if(actionText.includes("탈것 소환") || actionText.includes("탈것 합치기")) {
                     iconHtml = getIconImg("gear", 16) + " ";
+                } else if(actionText.includes("던전 키 사용")) {
+                    iconHtml = getIconImg("key", 16) + " ";
                 }
-                // No icon for 던전 키 사용, 전면전 승리, 라이벌 클랜 멤버 물리치기
+                // No icon for 전면전 승리, 라이벌 클랜 멤버 물리치기
                 
                 actionText = iconHtml + actionText;
                 

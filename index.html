@@ -98,7 +98,8 @@
                         <button class="g-btn" onclick="showDataTab('mount')">탈것</button>
                     </div>
                     <div class="global-tier-btns" style="margin-bottom: 0;">
-                        <button id="data_sortBtn" class="g-btn" style="background: rgba(208, 102, 255, 0.2); border-color: var(--accent); color: var(--text-main); height: 100%;" onclick="toggleDataSort()">정렬: 내림차순 (고렙 ➔ 저렙)</button>
+                        <button id="data_majorBtn" class="g-btn g-btn-action active" onclick="toggleMajorLevels()">주요 레벨만 표시</button>
+                        <button id="data_sortBtn" class="g-btn g-btn-action" onclick="toggleDataSort()">정렬: 오름차순 (저렙 ➔ 고렙)</button>
                     </div>
                 </div>
                 <div id="data_table_container"
@@ -185,7 +186,7 @@
                 </div>
 
                 <div id="league_clanWarRewards" style="display: block; height: 100%;">
-                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                    <div class="league-table-wrapper" style="height: 100%;">
                         <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
                             <thead id="league_cwr_thead"></thead>
                             <tbody id="league_cwr_tbody"></tbody>
@@ -194,16 +195,13 @@
                 </div>
 
                 <div id="league_rankedLeagueRewards" style="display: none; height: 100%;">
-                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
-                        <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
-                            <thead id="league_rlr_thead"></thead>
-                            <tbody id="league_rlr_tbody"></tbody>
-                        </table>
+                    <div id="league_rlr_container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; padding: 5px;">
+                        <!-- 6 tables will be injected here -->
                     </div>
                 </div>
 
                 <div id="league_individualClanRewards" style="display: none; height: 100%;">
-                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                    <div class="league-table-wrapper" style="height: 100%;">
                         <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
                             <thead id="league_icr_thead"></thead>
                             <tbody id="league_icr_tbody"></tbody>
@@ -212,7 +210,7 @@
                 </div>
 
                 <div id="league_clanWarDayActions" style="display: none; height: 100%;">
-                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; height: 100%;">
+                    <div class="league-table-wrapper" style="height: 100%;">
                         <table class="guide-table" style="width: 100%; height: 100%; border-collapse: collapse; text-align: center; font-size: 16px;">
                             <thead id="league_cwda_thead"></thead>
                             <tbody id="league_cwda_tbody"></tbody>

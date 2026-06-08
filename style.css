@@ -90,6 +90,20 @@ body {
     box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
 }
 
+.g-btn-action {
+    background: rgba(208, 102, 255, 0.1);
+    border-color: var(--accent);
+    color: var(--text-main);
+    height: 100%;
+}
+
+.g-btn-action:hover, .g-btn-action.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(208, 102, 255, 0.5);
+    border-color: var(--accent);
+}
+
 /* Navbar */
 .navbar {
     background: rgba(20, 20, 20, 0.8);
@@ -365,10 +379,22 @@ input[type="number"] {
     overflow: hidden;
 }
 
+.data-table tr {
+    height: 40px;
+    transition: all 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+    filter: brightness(1.2);
+}
+
 th, td {
     padding: 6px 4px; /* Reduced from 12px for horizontal space */
     text-align: center;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    min-width: 30px;
 }
 
 th {
@@ -867,4 +893,18 @@ tr:last-child td {
         flex-direction: column;
         gap: 15px;
     }
+}
+
+.league-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: rgba(0,0,0,0.3);
+}
+
+.league-table-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
 }
